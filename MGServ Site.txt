@@ -1,12 +1,14 @@
 # Site Link:
 
-/main - Главная
-/
-/bans - Банлист / Нарушители
-/stats - clear list - connect BD
-/shop - clear list
-/rules - 
-/about - copy site https://www.frostcast.net/about-us
+@main - Натянуть движок - Главная - Поставить правильно Jivosite - 
+/start - Страница разделена на 3 части - Копия с сайта https://redserver.su/start - Кнопка "Играть на MGServ" на главной странице
+/bans - Банлист / Нарушители - Выполнить копию с сайта https://redserver.su/bans
+/stats - Временно чистая страница - Выполнить подключение к BD Экономику, Время игры на сервере, Топ голосующих!, 
+/shop - Временно чистая страница
+/rules - Копировать стиль и правила с сайта https://redserver.su/rules
+/about - Копировать текст с сайта https://www.frostcast.net/about-us - О серверах, скопировать redserver.su/hardtech
+
+SHOP.MGSERV.RU - Магазин блоков/Привилегий
 
 Servers Link:
 
