@@ -7,6 +7,7 @@
 /shop - Временно чистая страница
 /rules - Копировать стиль и правила с сайта https://redserver.su/rules
 /about - Копировать текст с сайта https://www.frostcast.net/about-us - О серверах, скопировать redserver.su/hardtech
+/request - /request/add
 
 SHOP.MGSERV.RU - Магазин блоков/Привилегий
 
