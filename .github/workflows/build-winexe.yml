@@ -1,0 +1,89 @@
+name: Сборка MGS Admin для Windows
+
+on:
+  workflow_dispatch:
+    inputs:
+      panel_url:
+        description: Адрес веб-панели, который будет встроен в приложение
+        required: true
+        default: http://192.168.88.17:8080
+        type: string
+  push:
+    paths:
+      - "winexe/**"
+      - "mgs-admin-winexe-source-20260827.zip"
+      - ".github/workflows/build-winexe.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: winexe-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-windows:
+    name: Windows x64
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: winexe
+
+    steps:
+      - name: Получение исходников
+        uses: actions/checkout@v4
+
+      - name: Распаковка исходников
+        if: ${{ hashFiles('winexe/package-lock.json') == '' }}
+        working-directory: .
+        shell: pwsh
+        run: Expand-Archive -LiteralPath mgs-admin-winexe-source-20260827.zip -DestinationPath . -Force
+
+      - name: Установка Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: winexe/package-lock.json
+
+      - name: Установка Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Кеширование Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: winexe/src-tauri -> target
+
+      - name: Установка зависимостей
+        run: npm ci
+
+      - name: Настройка адреса панели
+        shell: pwsh
+        env:
+          PANEL_URL: ${{ inputs.panel_url || 'http://192.168.88.17:8080' }}
+        run: |
+          $configPath = "src-tauri/tauri.conf.json"
+          $config = Get-Content -LiteralPath $configPath -Raw -Encoding UTF8 | ConvertFrom-Json
+          $config.app.windows[0].url = $env:PANEL_URL
+          $config | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $configPath -Encoding UTF8
+          Write-Host "Приложение будет подключаться к $env:PANEL_URL"
+
+      - name: Сборка EXE, NSIS и MSI
+        run: npm run tauri build -- --bundles nsis,msi
+
+      - name: Подготовка файлов
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path artifacts -Force | Out-Null
+          Copy-Item "src-tauri/target/release/mgs-admin.exe" "artifacts/MGS-Admin-portable.exe"
+          Get-ChildItem "src-tauri/target/release/bundle/nsis" -Filter "*.exe" | Copy-Item -Destination artifacts
+          Get-ChildItem "src-tauri/target/release/bundle/msi" -Filter "*.msi" | Copy-Item -Destination artifacts
+          Get-ChildItem artifacts | Select-Object Name, Length
+
+      - name: Загрузка готовой сборки
+        uses: actions/upload-artifact@v4
+        with:
+          name: MGS-Admin-Windows-x64
+          path: winexe/artifacts/*
+          if-no-files-found: error
+          retention-days: 30
